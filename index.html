@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxAI - Intelligent Tax Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .new-session-btn {
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .new-session-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sessions-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .session-item {
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .session-item.active {
+            background-color: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .user-profile {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Demographics Panel */
+        .demographics-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 300px;
+            background-color: var(--bg-card);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .demographics-panel.open {
+            transform: translateX(0);
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .demo-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .demo-value {
+            font-weight: 500;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 1rem;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .input-area {
+            margin-top: 1rem;
+            background-color: var(--bg-card);
+            padding: 0.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.75rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .send-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Cards & Forms */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Loading */
+        .typing-indicator {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.5rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Markdown Styles */
+        .message p {
+            margin-bottom: 0.5rem;
+        }
+
+        .message ul {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+        }
+
+        .message pre {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 0.5rem;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Demographics Panel -->
+    <div class="demographics-panel" id="demoPanel">
+        <div class="demo-header">
+            <h3>User Profile</h3>
+            <button class="icon-btn" onclick="toggleDemographics()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div id="demographicsContent">
+            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                Loading demographics...
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-brain"></i> TaxAI
+        </div>
+
+        <button class="new-session-btn" onclick="createNewSession()">
+            <i class="fa-solid fa-plus"></i> New Chat Session
+        </button>
+
+        <div
+            style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+            Sessions
+        </div>
+        <div class="sessions-list" id="sessionsList">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="nav-item active" onclick="showTab('chat')">
+            <i class="fa-regular fa-comments"></i> Chat Assistant
+        </div>
+        <div class="nav-item" onclick="showTab('itr')">
+            <i class="fa-solid fa-file-invoice-dollar"></i> ITR Filing
+        </div>
+        <div class="nav-item" onclick="showTab('capital-gains')">
+            <i class="fa-solid fa-chart-line"></i> Capital Gains
+        </div>
+        <div class="nav-item" onclick="showTab('documents')">
+            <i class="fa-regular fa-folder-open"></i> Documents
+        </div>
+
+        <div class="user-profile">
+            <div class="avatar">U</div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600;">Test User</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">user123</div>
+            </div>
+            <button class="icon-btn" onclick="toggleDemographics()" title="View Profile">
+                <i class="fa-solid fa-user-circle"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Chat Tab -->
+        <div id="tab-chat" class="content-area chat-container">
+            <div class="header" style="background: transparent; border: none; padding: 0 0 1rem 0;">
+                <div class="page-title">Tax Assistant</div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div class="badge badge-success"><i class="fa-solid fa-circle"
+                            style="font-size: 0.5rem; margin-right: 0.25rem;"></i> Online</div>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);" id="sessionInfo">
+                        Session: <span id="currentSessionDisplay">Loading...</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="messages-area" id="messages">
+                <div class="message assistant">
+                    Hello! I'm your TaxAI assistant. I can help you with ITR filing, capital gains, and tax planning.
+                    How can I assist you today?
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" class="chat-input" id="chatInput"
+                    placeholder="Ask about taxes, ITR, or capital gains..." onkeypress="handleEnter(event)">
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ITR Tab -->
+        <div id="tab-itr" class="content-area hidden">
+            <div class="header" style="margin: -2rem -2rem 2rem -2rem;">
+                <div class="page-title">ITR Filing Automation</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">File New ITR</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">PAN Number</label>
+                        <input type="text" class="form-control" id="itrPan" value="ABCDE1234F">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assessment Year</label>
+                        <select class="form-control" id="itrYear">
+                            <option value="2024-25">2024-25</option>
+                            <option value="2023-24">2023-24</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ITR Type</label>
+                        <select class="form-control" id="itrType">
+                            <option value="ITR-1">ITR-1 (Sahaj)</option>
+                            <option value="ITR-2">ITR-2</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="fileITR()">
+                        <i class="fa-solid fa-robot"></i> Start Auto-Filing Agent
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Filing Status</div>
+                    </div>
+                    <div id="itrStatusArea">
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No active filing process.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Past Filings</div>
+                    <button class="btn" style="background: var(--bg-dark);" onclick="loadFilings()"><i
+                            class="fa-solid fa-rotate"></i></button>
+                </div>
+                <div class="table-container">
+                    <table id="filingsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>AY</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Ack No.</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capital Gains Tab -->
+        <div id="tab-capital-gains" class="content-area hidden">
+            <div class="header" style="margin: -2rem -2rem 2rem -2rem;">
+                <div class="page-title">Capital Gains Portfolio</div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Portfolio Summary</div>
+                    </div>
+                    <div id="portfolioSummary">
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Add Transaction</div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-control" id="cgType">
+                                <option value="buy">Buy</option>
+                                <option value="sell">Sell</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Asset</label>
+                            <select class="form-control" id="cgAsset">
+                                <option value="equity">Equity</option>
+                                <option value="mutual_fund">Mutual Fund</option>
+                                <option value="property">Property</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="cgName" placeholder="e.g. TATA MOTORS">
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Price</label>
+                            <input type="number" class="form-control" id="cgPrice">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="cgQty">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" id="cgDate">
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="addTransaction()">Add
+                        Transaction</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Transactions</div>
+                    <button class="btn" style="background: var(--bg-dark);" onclick="loadTransactions()"><i
+                            class="fa-solid fa-rotate"></i></button>
+                </div>
+                <div class="table-container">
+                    <table id="txnsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Asset</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Gain/Loss</th>
+                                <th>Tax</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="tab-documents" class="content-area hidden">
+            <div class="header" style="margin: -2rem -2rem 2rem -2rem;">
+                <div class="page-title">Document Vault</div>
+            </div>
+
+            <div class="card">
+                <div style="border: 2px dashed var(--border); padding: 3rem; text-align: center; border-radius: 1rem; cursor: pointer;"
+                    onclick="document.getElementById('fileUpload').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"
+                        style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>Click to Upload Documents</h3>
+                    <p style="color: var(--text-muted);">Form 16, AIS, Bank Statements, etc.</p>
+                    <input type="file" id="fileUpload" style="display: none;" onchange="uploadFile(this)">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Your Documents</div>
+                    <button class="btn" style="background: var(--bg-dark);" onclick="loadDocuments()"><i
+                            class="fa-solid fa-rotate"></i></button>
+                </div>
+                <div class="table-container">
+                    <table id="docsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        const USER_ID = 'user123'; // Hardcoded for demo
+        let currentSessionId = null;
+        let userSessions = [];
+
+        // Initialize on load
+        (async () => {
+            try {
+                // Register user
+                await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: USER_ID, user_name: 'Test User' })
+                });
+
+                // Load sessions
+                await loadSessions();
+
+                // Create or load session
+                if (userSessions.length === 0) {
+                    await createNewSession();
+                } else {
+                    switchSession(userSessions[0].session_id);
+                }
+
+                // Load demographics
+                loadDemographics();
+            } catch (e) {
+                console.error('Initialization error:', e);
+            }
+        })();
+
+        // Session Management
+        async function createNewSession() {
+            try {
+                const response = await fetch(`${API_BASE}/memory/session/new?user_id=${USER_ID}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                currentSessionId = data.session_id;
+
+                // Clear messages
+                document.getElementById('messages').innerHTML = `
+                    <div class="message assistant">
+                        Hello! I'm your TaxAI assistant. I can help you with ITR filing, capital gains, and tax planning.
+                        How can I assist you today?
+                    </div>
+                `;
+
+                await loadSessions();
+                updateSessionDisplay();
+            } catch (error) {
+                console.error('Failed to create session:', error);
+            }
+        }
+
+        async function loadSessions() {
+            try {
+                const response = await fetch(`${API_BASE}/memory/sessions/${USER_ID}`);
+                const data = await response.json();
+                userSessions = data.sessions || [];
+
+                const sessionsList = document.getElementById('sessionsList');
+                if (userSessions.length === 0) {
+                    sessionsList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem;">No sessions yet</div>';
+                } else {
+                    sessionsList.innerHTML = userSessions.map(session => `
+                        <div class="session-item ${session.session_id === currentSessionId ? 'active' : ''}" 
+                             onclick="switchSession('${session.session_id}')">
+                            <div>
+                                <div style="font-weight: 500;">${session.title || 'New Chat'}</div>
+                                <div style="font-size: 0.75rem; opacity: 0.7;">${session.message_count || 0} messages</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load sessions:', error);
+            }
+        }
+
+        async function switchSession(sessionId) {
+            currentSessionId = sessionId;
+
+            // Load conversation history
+            try {
+                const response = await fetch(`${API_BASE}/memory/conversation/${sessionId}`);
+                const data = await response.json();
+
+                const messagesArea = document.getElementById('messages');
+                messagesArea.innerHTML = '';
+
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessage(msg.content, msg.role);
+                    });
+                } else {
+                    messagesArea.innerHTML = `
+                        <div class="message assistant">
+                            Hello! I'm your TaxAI assistant. How can I help you today?
+                        </div>
+                    `;
+                }
+
+                updateSessionDisplay();
+                loadSessions(); // Refresh session list to update active state
+            } catch (error) {
+                console.error('Failed to load conversation:', error);
+            }
+        }
+
+        function updateSessionDisplay() {
+            const session = userSessions.find(s => s.session_id === currentSessionId);
+            const displayEl = document.getElementById('currentSessionDisplay');
+            if (session) {
+                displayEl.textContent = session.title || currentSessionId.substring(0, 15) + '...';
+            } else {
+                displayEl.textContent = currentSessionId ? currentSessionId.substring(0, 15) + '...' : 'Loading...';
+            }
+        }
+
+        // Demographics
+        async function loadDemographics() {
+            try {
+                const response = await fetch(`${API_BASE}/memory/demographics/${USER_ID}`);
+                const data = await response.json();
+
+                const demographicsContent = document.getElementById('demographicsContent');
+
+                if (data.demographics && Object.keys(data.demographics).length > 0) {
+                    demographicsContent.innerHTML = Object.entries(data.demographics).map(([key, value]) => `
+                        <div class="demo-item">
+                            <div class="demo-label">${key.replace(/_/g, ' ').toUpperCase()}</div>
+                            <div class="demo-value">${value}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    demographicsContent.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            <i class="fa-solid fa-user-circle" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            No demographic data yet. Chat with the assistant to build your profile!
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load demographics:', error);
+            }
+        }
+
+        function toggleDemographics() {
+            const panel = document.getElementById('demoPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                loadDemographics();
+            }
+        }
+
+        // Navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.content-area').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'itr') loadFilings();
+            if (tabId === 'capital-gains') { loadPortfolio(); loadTransactions(); }
+            if (tabId === 'documents') loadDocuments();
+        }
+
+        // Chat Logic
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            if (!currentSessionId) {
+                await createNewSession();
+            }
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Add typing indicator
+            const typingId = addTypingIndicator();
+
+            try {
+                const response = await fetch(`${API_BASE}/chat/stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        user_id: USER_ID,
+                        conversation_id: currentSessionId
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let assistantMessageDiv = null;
+
+                // Remove typing indicator
+                document.getElementById(typingId).remove();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+
+                                if (data.chunk) {
+                                    if (!assistantMessageDiv) {
+                                        assistantMessageDiv = addMessage('', 'assistant');
+                                    }
+                                    assistantMessageDiv.innerHTML += data.chunk.replace(/\n/g, '<br>');
+                                    scrollToBottom();
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+
+                // Reload sessions to update titles
+                loadSessions();
+                // Reload demographics (might have been updated)
+                loadDemographics();
+            } catch (error) {
+                console.error(error);
+                document.getElementById(typingId)?.remove();
+                addMessage('Sorry, something went wrong.', 'assistant');
+            }
+        }
+
+        function addMessage(content, role) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = content;
+            document.getElementById('messages').appendChild(div);
+            scrollToBottom();
+            return div;
+        }
+
+        function addTypingIndicator() {
+            const id = 'typing-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'message assistant';
+            div.innerHTML = '<div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            document.getElementById('messages').appendChild(div);
+            scrollToBottom();
+            return id;
+        }
+
+        function scrollToBottom() {
+            const area = document.getElementById('messages');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // ITR Logic
+        async function fileITR() {
+            const pan = document.getElementById('itrPan').value;
+            const year = document.getElementById('itrYear').value;
+            const type = document.getElementById('itrType').value;
+
+            const statusArea = document.getElementById('itrStatusArea');
+            statusArea.innerHTML = `
+                <div style="padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; color: var(--primary);">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> AI Agent is working...<br>
+                    <small>Logging in, fetching prefill data, validating...</small>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/itr/file-automatically?user_id=${USER_ID}&pan=${pan}&assessment_year=${year}&itr_type=${type}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    statusArea.innerHTML = `
+                        <div style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; color: var(--success);">
+                            <i class="fa-solid fa-check-circle"></i> ITR Filed Successfully!<br>
+                            <small>Filing ID: ${data.filing_id}</small>
+                        </div>
+                    `;
+                    loadFilings();
+                } else {
+                    throw new Error(data.detail || 'Failed');
+                }
+            } catch (error) {
+                statusArea.innerHTML = `
+                    <div style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 0.5rem; color: var(--danger);">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Filing Failed: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function loadFilings() {
+            const res = await fetch(`${API_BASE}/itr/user/${USER_ID}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#filingsTable tbody');
+            tbody.innerHTML = data.filings.map(f => `
+                <tr>
+                    <td>#${f.id}</td>
+                    <td>${f.assessment_year}</td>
+                    <td>${f.itr_type}</td>
+                    <td><span class="badge badge-${f.status === 'submitted' ? 'success' : 'warning'}">${f.status}</span></td>
+                    <td>${f.acknowledgement_number || '-'}</td>
+                    <td>${new Date(f.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Capital Gains Logic
+        async function loadPortfolio() {
+            const res = await fetch(`${API_BASE}/capital-gains/portfolio/${USER_ID}`);
+            const data = await res.json();
+            document.getElementById('portfolioSummary').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Total Invested</div>
+                        <div style="font-size: 1.5rem; font-weight: 600;">₹${data.total_invested.toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">Tax Liability</div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: var(--danger);">₹${data.total_tax_liability.toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">STCG</div>
+                        <div style="font-weight: 500;">₹${data.stcg_total.toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">LTCG</div>
+                        <div style="font-weight: 500;">₹${data.ltcg_total.toLocaleString()}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadTransactions() {
+            const res = await fetch(`${API_BASE}/capital-gains/transactions/${USER_ID}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#txnsTable tbody');
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${new Date(t.purchase_date).toLocaleDateString()}</td>
+                    <td><span class="badge badge-${t.type === 'buy' ? 'success' : 'danger'}">${t.type.toUpperCase()}</span></td>
+                    <td>${t.asset_name} <small>(${t.asset_type})</small></td>
+                    <td>${t.quantity}</td>
+                    <td>₹${t.purchase_price}</td>
+                    <td style="color: ${t.gain_loss > 0 ? 'var(--success)' : ''}">${t.gain_loss ? '₹' + t.gain_loss : '-'}</td>
+                    <td>${t.tax ? '₹' + t.tax : '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function addTransaction() {
+            const data = {
+                user_id: USER_ID,
+                asset_type: document.getElementById('cgAsset').value,
+                transaction_type: document.getElementById('cgType').value,
+                purchase_date: document.getElementById('cgDate').value + 'T10:00:00',
+                purchase_price: parseFloat(document.getElementById('cgPrice').value),
+                quantity: parseFloat(document.getElementById('cgQty').value),
+                asset_name: document.getElementById('cgName').value
+            };
+
+            await fetch(`${API_BASE}/capital-gains/transaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            loadPortfolio();
+            loadTransactions();
+
+            // Clear form
+            document.getElementById('cgName').value = '';
+            document.getElementById('cgPrice').value = '';
+            document.getElementById('cgQty').value = '';
+        }
+
+        // Documents Logic
+        async function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            await fetch(`${API_BASE}/upload?user_id=${USER_ID}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            loadDocuments();
+        }
+
+        async function loadDocuments() {
+            const res = await fetch(`${API_BASE}/documents/${USER_ID}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#docsTable tbody');
+            tbody.innerHTML = data.map(d => `
+                <tr>
+                    <td><i class="fa-regular fa-file"></i> ${d.file_name}</td>
+                    <td>${d.document_type}</td>
+                    <td>${(d.file_size / 1024).toFixed(1)} KB</td>
+                    <td>${new Date(d.uploaded_at).toLocaleDateString()}</td>
+                    <td><button class="btn" style="padding: 0.25rem 0.5rem; color: var(--danger);" onclick="deleteDocument(${d.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteDocument(id) {
+            if (confirm('Delete this document?')) {
+                await fetch(`${API_BASE}/document/${id}`, { method: 'DELETE' });
+                loadDocuments();
+            }
+        }
+
+    </script>
+</body>
+
+</html>

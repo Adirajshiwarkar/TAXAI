@@ -1,0 +1,101 @@
+############################
+# Environment & Secrets
+############################
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+
+############################
+# Node.js (Backend + Frontend)
+############################
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+############################
+# Next.js
+############################
+.next/
+out/
+build/
+.vercel/
+.next/cache/
+
+############################
+# Python (AI Backend)
+############################
+venv/
+.env-venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+############################
+# FastAPI / Uvicorn
+############################
+*.log
+logs/
+uvicorn.log
+
+############################
+# Databases / Storage
+############################
+*.sqlite3
+*.db
+data/
+storage/
+milvus/
+mongo-data/
+
+############################
+# Audio / Media (generated)
+############################
+*.wav
+*.mp3
+*.webm
+*.ogg
+audio/
+uploads/
+
+############################
+# Build / Dist
+############################
+dist/
+coverage/
+tmp/
+temp/
+
+############################
+# OS / Editor
+############################
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+############################
+# Docker
+############################
+docker-compose.override.yml
+*.docker.env
+
+############################
+# PM2
+############################
+.pm2/
+pm2.log
+
+############################
+# Nginx / Infra (local only)
+############################
+nginx.conf.local

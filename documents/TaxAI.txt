@@ -1,0 +1,207 @@
+import React, { useState } from 'react';
+import { Send, Loader2, Wrench, Brain, CheckCircle } from 'lucide-react';
+
+const AgenticAIApp = () => {
+  const [task, setTask] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  // Simulated tools the agent can use
+  const tools = {
+    web_search: async (query) => {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return `Search results for "${query}": Found relevant information about ${query}`;
+    },
+    calculator: async (expression) => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      try {
+        const result = Function('"use strict"; return (' + expression + ')')();
+        return `Calculation result: ${expression} = ${result}`;
+      } catch (e) {
+        return `Error calculating ${expression}`;
+      }
+    },
+    get_weather: async (location) => {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return `Weather in ${location}: Sunny, 72°F`;
+    }
+  };
+
+  const addMessage = (type, content, toolUsed = null) => {
+    setMessages(prev => [...prev, { type, content, toolUsed, timestamp: Date.now() }]);
+  };
+
+  const decideAction = (taskText) => {
+    const lower = taskText.toLowerCase();
+    
+    if (lower.includes('search') || lower.includes('find') || lower.includes('look up')) {
+      const searchQuery = taskText.replace(/search|find|look up/gi, '').trim();
+      return { tool: 'web_search', args: searchQuery };
+    }
+    
+    if (lower.includes('calculate') || lower.includes('math') || /[\d+\-*/()]/.test(taskText)) {
+      const expression = taskText.replace(/calculate|what is|equals?/gi, '').trim();
+      return { tool: 'calculator', args: expression };
+    }
+    
+    if (lower.includes('weather')) {
+      const location = taskText.replace(/weather|in|for|at/gi, '').trim() || 'New York';
+      return { tool: 'get_weather', args: location };
+    }
+    
+    return null;
+  };
+
+  const runAgent = async () => {
+    if (!task.trim()) return;
+    
+    setIsRunning(true);
+    setMessages([]);
+    
+    addMessage('thinking', `Analyzing task: "${task}"`);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    const action = decideAction(task);
+    
+    if (!action) {
+      addMessage('thinking', 'I need to think about this task...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      addMessage('complete', `I understand you want me to: "${task}". For this demo, I can search the web, do calculations, or check weather. Try tasks like "search for AI news" or "calculate 25 * 4"`);
+      setIsRunning(false);
+      return;
+    }
+    
+    addMessage('thinking', `I'll use the ${action.tool} tool to help with this`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    addMessage('action', `Executing: ${action.tool}("${action.args}")`, action.tool);
+    const result = await tools[action.tool](action.args);
+    
+    addMessage('observation', result);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    addMessage('complete', `Task completed! I used ${action.tool} to ${task}`);
+    
+    setIsRunning(false);
+  };
+
+  const getIcon = (type) => {
+    switch(type) {
+      case 'thinking':
+        return <Brain className="w-5 h-5 text-purple-500" />;
+      case 'action':
+        return <Wrench className="w-5 h-5 text-blue-500" />;
+      case 'observation':
+        return <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />;
+      case 'complete':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getMessageColor = (type) => {
+    switch(type) {
+      case 'thinking':
+        return 'bg-purple-50 border-purple-200';
+      case 'action':
+        return 'bg-blue-50 border-blue-200';
+      case 'observation':
+        return 'bg-orange-50 border-orange-200';
+      case 'complete':
+        return 'bg-green-50 border-green-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-xl p-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Basic Agentic AI Demo</h1>
+          <p className="text-gray-600 mb-6">Watch the agent think, decide, and act to complete your task</p>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Give the agent a task:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !isRunning && runAgent()}
+                placeholder="e.g., 'search for AI news' or 'calculate 123 * 456'"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isRunning}
+              />
+              <button
+                onClick={runAgent}
+                disabled={isRunning || !task.trim()}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isRunning ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Running
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Run Agent
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 min-h-64">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Agent Activity:</h2>
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-400 py-12">
+                <Brain className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p>Agent is ready. Give it a task to see it in action!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {messages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-4 rounded-lg border-2 ${getMessageColor(msg.type)} transition-all duration-300`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {getIcon(msg.type)}
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-700 capitalize mb-1">
+                          {msg.type}
+                          {msg.toolUsed && (
+                            <span className="ml-2 text-xs bg-white px-2 py-1 rounded">
+                              Tool: {msg.toolUsed}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600">{msg.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-900 mb-2">Available Tools:</h3>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• <strong>web_search</strong> - Search for information</li>
+              <li>• <strong>calculator</strong> - Perform calculations</li>
+              <li>• <strong>get_weather</strong> - Check weather for a location</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AgenticAIApp;
